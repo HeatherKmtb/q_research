@@ -630,7 +630,7 @@ def grid(folderin, fileout, folderout, naming=3, eco_loc=2):
     fileList = glob.glob(folderin + '*.shp')
 
     #create df for results
-    resultsa = pd.DataFrame(columns = ['eco', 'ID', 'qout', 'r_sq', 'deg_free', 'rmse','r_sq_mean'])
+    resultsa = pd.DataFrame(columns = ['eco', 'ID', 'qout', 'r_sq', 'deg_free', 'rmse','r_sq_mean', 'adj_r2'])
     #resultsb = pd.DataFrame(columns = ['eco', 'ID', 'qout', 'r_sq', 'deg_free', 'rmse'])
 
     for file in fileList:
@@ -646,7 +646,7 @@ def grid(folderin, fileout, folderout, naming=3, eco_loc=2):
         print(eco)
         #remove data with H_100 >= 0 prior to logging
         test2 = df[df['i_h100']>=0] 
-        footprints = len(df['i_h100'])
+        
         #means x is just the h100 data - needs logging to normalise (not skewed) 
         x = test2['i_h100']
         
@@ -669,7 +669,9 @@ def grid(folderin, fileout, folderout, naming=3, eco_loc=2):
             continue
         del a, b, x, y, test2, test2a, test3
 
-        if footprints < 50:
+        footprints = len(final['i_h100'])
+        
+        if footprints < 100:
             continue
         
         #NEXT STEP. Bin remaining data in order to get mean and IQR of each bin
@@ -750,6 +752,11 @@ def grid(folderin, fileout, folderout, naming=3, eco_loc=2):
         tot_ss2 = np.sum((y-np.mean(y))**2)
         r_sq = 1- (res_ss2/tot_ss2)
         r_sq = round(r_sq, 2)
+        
+        #calculating adjusted r2
+        stage1 = (footprints - 1)/(footprints - 3)
+        stage2 = 1-(1-r_sq)
+        adj_r2= stage1 * stage2
             
         from sklearn.metrics import mean_squared_error
         from math import sqrt
@@ -763,7 +770,10 @@ def grid(folderin, fileout, folderout, naming=3, eco_loc=2):
         #plt.close
         
         #extract info: eco, qout, r_sq, deg_free (only gets one eco in data)
-        resultsa = resultsa.append({'eco': eco, 'ID': name, 'qout': qout, 'r_sq': r_sq, 'deg_free': footprints, 'rmse': rms, 'r_sq_mean': r_sq_mean}, ignore_index=True)
+        resultsa = resultsa.append({'eco': eco, 'ID': name, 'qout': qout, 
+                                    'r_sq': r_sq, 'deg_free': footprints, 
+                                    'rmse': rms, 'r_sq_mean': r_sq_mean, 
+                                    'adj_r2': adj_r2}, ignore_index=True)
         #if deg_free>=60:
             #resultsb = resultsb.append({'eco': name2, 'ID': name, 'qout': qout, 'r_sq': r_sq, 'deg_free': deg_free, 'rmse': rms}, ignore_index=True)        
             #export to excel
@@ -778,7 +788,7 @@ def grid(folderin, fileout, folderout, naming=3, eco_loc=2):
         #plots IQR
         ax.bar(plot['median'],plot['mean'],width=0, yerr=plot['iqr'])
         #sets title and axis labels
-        ax.set_title('ecoregion' + eco + 'in grid no.' + name)
+        ax.set_title('ecoregion ' + eco + ' in grid no. ' + name)
         ax.set_ylabel('Canopy Density')
         ax.set_xlabel('Height - h100 (m)')
         ax.set_xlim([0, 60])
@@ -791,6 +801,7 @@ def grid(folderin, fileout, folderout, naming=3, eco_loc=2):
         #plotting the curve
         ax.plot(xdata, ycurve, linestyle='-')
         #adding qout, r_sq and deg_free to plot
+        #ax.annotate('adj_r2 = ' + str(adj_r2[0]), xy=(0.975,0.10), xycoords='axes fraction', fontsize=12, horizontalalignment='right', verticalalignment='bottom')
         ax.annotate('q = ' + str(qout[0]), xy=(0.975,0.20), xycoords='axes fraction', fontsize=12, horizontalalignment='right', verticalalignment='bottom')
         ax.annotate('r2 = ' + str(r_sq), xy=(0.975,0.15), xycoords='axes fraction', fontsize=12, horizontalalignment='right', verticalalignment='bottom')
         ax.annotate('RMSE = ' + str(rms),xy=(0.975,0.10), xycoords='axes fraction', fontsize=12, horizontalalignment='right', verticalalignment='bottom')   

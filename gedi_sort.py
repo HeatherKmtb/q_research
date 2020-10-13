@@ -188,10 +188,10 @@ def grid_join(base_vec, folderin, folderout):
         name = os.path.splitext(os.path.basename(join_vec))[0]
         # Must have rtree installed - otherwise error "geopandas/tools/sjoin.py"
         # AttributeError: 'NoneType' object has no attribute 'intersection'
-        base_gpd_df = geopandas.read_file(base_vec)
-        join_gpg_df = geopandas.read_file(join_vec)
+        base_gpd_df = gpd.read_file(base_vec)
+        join_gpg_df = gpd.read_file(join_vec)
     
-        join_gpg_df = geopandas.sjoin(base_gpd_df, join_gpg_df, how="inner", op="within")
+        join_gpg_df = gpd.sjoin(join_gpg_df, base_gpd_df,how="inner", op="within")
         join_gpg_df.to_file(folderout + '{}.shp'.format(name))
 
 
@@ -228,6 +228,7 @@ def split_per(folderin, folderout, split_col='join', colNms=['degrade_fl','digit
         basename =  os.path.splitext(os.path.basename(filename))[0] 
         name_comp = basename.split('_')
         name = name_comp[2]
+        beam = name_comp[9]
         
         df3 = gpd.read_file(filename)
         dfa = df3[df3['surface_flag']==1] 
@@ -240,7 +241,7 @@ def split_per(folderin, folderout, split_col='join', colNms=['degrade_fl','digit
             df2 = gpd.GeoDataFrame(df, columns=colNms)
             ID = str(eco)
             df_eco = df.loc[df2[split_col]==eco, colNms]
-            df_eco.to_file(folderout + '/{}_join_{}.shp'.format(name, ID)) 
+            df_eco.to_file(folderout + '/{}_{}_join_{}.shp'.format(name, beam, ID)) 
 
 def sort_files(folderin, folderout, fileout = '/scratch/a.hek4/joinlist.txt'):
     """
@@ -265,7 +266,7 @@ def sort_files(folderin, folderout, fileout = '/scratch/a.hek4/joinlist.txt'):
         basename =  os.path.splitext(os.path.basename(file))[0] 
         name_comp = basename.split('_')
         date = name_comp[0]
-        join = name_comp[2] + '_' + name_comp[3]
+        join = name_comp[3] + '_' + name_comp[4]
         df = gpd.read_file(file)
         df['date'] = date
         joinlist.append(join)
@@ -276,34 +277,37 @@ def sort_files(folderin, folderout, fileout = '/scratch/a.hek4/joinlist.txt'):
         pickle.dump(joinlist, fp)
             
     
-def join_gedi_files(folderin, folderout, filein = '/scratch/a.hek4/joinlist.txt'):   
+def join_per(folderin, folderout, filein = '/scratch/a.hek4/joinlist.txt', naming='*_join_{}.shp'):
+    """
+    Function to regroup files that have been split with spilt_per function on elements of split
     
-    
+    Parameters
+    ----------
+    folderin: string
+            filepath for folder containing shapefiles to be joined
+            
+    folderout: string
+             filepath for folder where output shapefiles will be saved 
+             
+    filein: string
+          filepath for textfile with  list of elements for the join.
+          Default = '/scratch/a.hek4/joinlist.txt'
+          
+    naming: string
+          filename with {} to select part of filename which matches naming of element of join
+          Default = '*_join_{}.shp'
+    """
+    #import textfile with IDs to obtain list for merge
     with open (filein, 'rb') as fp:
         joinlist = pickle.load(fp)
-    
-    for i in joinlist:
-        outputMergefn = folderout + i + '.shp'
-        driverName = 'ESRI Shapefile'
-        geometryType = ogr.wkbPoint
-    
-        out_driver = ogr.GetDriverByName(driverName)
-        out_ds = out_driver.CreateDataSource(outputMergefn)
-        out_layer = out_ds.CreateLayer(outputMergefn, geom_type = geometryType)      
         
-        files = glob.glob(folderin + '*_join_' + i + '.shp')
-        for file in files:
-            ds = ogr.Open(file)
-            lyr = ds.GetLayer()
-            for feat in lyr:
-                out_feat = ogr.Feature(out_layer.GetLayerDefn())
-                out_feat.SetGeometry(feat.GetGeometryRef().Clone())
-                out_layer.CreateFeature(out_feat)
-                #out_feat = None
-        out_layer.SyncToDisk()
+    for i in joinlist:
+        fileList = glob.glob(folderin + naming.format(i))#here also need dict ref
+        rsgislib.vectorutils.mergeShapefiles(fileList, folderout + 'gedi_{}.shp'.format(i))#use dict to get ecoNm, create new folder too?
+ 
                 
 
-def grid(folderin, fileout, folderout, naming=1, eco_loc=0):
+def grid(folderin, fileout, folderout, naming=2, eco_loc=1):
     """
     Function to compute q and provide results (csv) and figures (pdf)
     

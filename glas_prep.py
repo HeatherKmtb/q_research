@@ -7,10 +7,12 @@ Created on Fri Jul  3 15:17:15 2020
 """
 
 import rsgislib.vectorutils
-import math
 import glob
 import os.path
 from multiprocessing import Pool
+import geopandas as gpd
+import numpy as np
+import pandas as pd
 
 def shp_join(filein, folderout, folderno):
     """
