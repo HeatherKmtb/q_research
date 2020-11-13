@@ -1088,7 +1088,7 @@ def grid_only(folderin, fileout, folderout, naming=2):
 
         footprints = len(final['i_h100'])
         
-        if footprints < 100:
+        if footprints < 10:
             continue
         
         #NEXT STEP. Bin remaining data in order to get mean and IQR of each bin
