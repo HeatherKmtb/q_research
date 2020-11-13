@@ -1103,7 +1103,7 @@ def grid_only(folderin, fileout, folderout, naming=2):
         cd_iqr = []
         #Hbin = []
         print(name)
-        print(eco)
+        
         HBins = list(np.unique(final['H_bins']))
         for bins in HBins:
             #for each one make a df with just that bin
