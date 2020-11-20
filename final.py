@@ -65,7 +65,7 @@ def ecoregions(folderin, fileout, folderout, naming='gla14_eco_'):
         name2 = eco_ID[name] 
         #remove data with H_100 >= 0 prior to logging
         test2 = df[df['i_h100']>=0] 
-        footprints = len(df['i_h100'])
+        
         #means x is just the h100 data - needs logging to normalise (not skewed) 
         x = test2['i_h100']
         
@@ -87,7 +87,11 @@ def ecoregions(folderin, fileout, folderout, naming='gla14_eco_'):
         if final.empty:
             continue
         del a, b, x, y, test2, test2a, test3
-    
+
+        footprints = len(final['i_h100'])
+        
+        if footprints < 100:
+            continue    
         #NEXT STEP. Bin remaining data in order to get mean and IQR of each bin
 
         #add column with bins 
