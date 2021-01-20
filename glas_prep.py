@@ -13,6 +13,7 @@ from multiprocessing import Pool
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+import rsgislib.zonalstats
 
 def shp_join(filein, folderout, folderno):
     """
