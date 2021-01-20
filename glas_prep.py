@@ -152,7 +152,7 @@ def lc_join(folderin, filein, folderout):
         filepath for output files directory
 
     """
-    split_files = glob.glob(folderin)
+    split_files = glob.glob(folderin + '*.shp')
 
     for filename in split_files:
         basename = os.path.splitext(os.path.basename(filename))[0]
