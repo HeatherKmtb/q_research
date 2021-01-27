@@ -1277,6 +1277,7 @@ def obtain_removed_polygons(folderin, fileout, naming=4, eco_loc=2):
         eco = name_comp[eco_loc]
         print(name)
         print(eco)
+        
         #remove data with H_100 >= 0 prior to logging
         test2 = df[df['i_h100']>=0] 
         
@@ -1308,4 +1309,52 @@ def obtain_removed_polygons(folderin, fileout, naming=4, eco_loc=2):
             resultsa = resultsa.append({'eco':eco,'ID':name}, ignore_index=True)
             print(name +'_' + eco)        
         
+        resultsa.to_csv(fileout)
+        
+def obtain_all_polygons(folderin, fileout, naming=4, eco_loc=2):
+    """
+    Function to compute q and provide results (csv) and figures (pdf)
+    
+    Parameters
+    ----------
+    
+    folderin: string
+            Filepath for folder with files ready for analysis
+                
+    naming: int
+          Section of filename to obtain ID (here grid number). Obtained
+          by splitting filename by '_' and indexing
+          Default = 3
+
+    eco_loc: int
+          Section of filename to obtain ecoregion (if applicable). 
+          Obtained as with naming
+          Default = 2
+          
+    fileout: string
+           Filepath for results file ending '.csv'
+           
+             
+    """
+
+    #using 'file' to title plot  
+    fileList = glob.glob(folderin + '*.shp')
+
+    #create df for results
+    resultsa = pd.DataFrame(columns = ['eco', 'ID'])
+    #resultsb = pd.DataFrame(columns = ['eco', 'ID', 'qout', 'r_sq', 'deg_free', 'rmse'])
+
+    for file in fileList:
+        df = gpd.read_file(file)
+        if df.empty:
+            continue 
+        hd, tl = path.split(file)
+        shp_lyr_name = path.splitext(tl)[0]
+        name_comp = shp_lyr_name.split('_')
+        name = name_comp[naming] 
+        eco = name_comp[eco_loc]
+        print(name)
+        print(eco)
+        
+        resultsa = resultsa.append({'eco':eco,'ID':name}, ignore_index=True) 
         resultsa.to_csv(fileout)
