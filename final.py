@@ -1233,7 +1233,7 @@ def grid_only(folderin, fileout, folderout, naming=2):
         plt.savefig(folderout + 'fig{}.pdf'.format(name))
         plt.close
         
-def obtain_removed_polygons(folderin, naming=4, eco_loc=2):
+def obtain_removed_polygons(folderin, fileout, naming=4, eco_loc=2):
     """
     Function to compute q and provide results (csv) and figures (pdf)
     
@@ -1256,15 +1256,14 @@ def obtain_removed_polygons(folderin, naming=4, eco_loc=2):
     fileout: string
            Filepath for results file ending '.csv'
            
-    folderout: string
-             Filepath for folder to save the figures            
+             
     """
 
     #using 'file' to title plot  
     fileList = glob.glob(folderin + '*.shp')
 
     #create df for results
-    #resultsa = pd.DataFrame(columns = ['eco', 'ID', 'qout', 'r_sq', 'deg_free', 'rmse','r_sq_mean', 'adj_r2'])
+    resultsa = pd.DataFrame(columns = ['eco', 'ID'])
     #resultsb = pd.DataFrame(columns = ['eco', 'ID', 'qout', 'r_sq', 'deg_free', 'rmse'])
 
     for file in fileList:
@@ -1306,5 +1305,7 @@ def obtain_removed_polygons(folderin, naming=4, eco_loc=2):
         footprints = len(final['i_h100'])
         
         if footprints < 100:
+            resultsa = resultsa.append({'eco':eco,'ID':name}, ignore_index=True)
             print(name +'_' + eco)        
-                
+        
+        resultsa.to_csv(fileout)
