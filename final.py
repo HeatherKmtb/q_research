@@ -1431,8 +1431,8 @@ def grid_hxcd(folderin, fileout, naming=4, eco_loc=2):
         del a, b, x, y, test2, test2a, test3
 
         #get 25% quantiles
-        height = np.quantile(final['i_h100'], 0.75)
-        cd = np.quantile(final['i_cd'], 0.75)
+        height = np.quantile(final['i_h100'], 0.90)
+        cd = np.quantile(final['i_cd'], 0.90)
         
         mean_h = height.mean()
         mean_cd = cd.mean()
