@@ -182,7 +182,7 @@ def ecoregions(folderin, fileout, folderout, naming='gla14_eco_'):
         #plt.close
         
         #extract info: eco, qout, r_sq, deg_free (only gets one eco in data)
-        resultsa = resultsa.append({'ID': name, 'qout': qout, 'r_sq': r_sq, 'deg_free': footprints, 'rmse': rms, 'r_sq_mean': r_sq_mean}, ignore_index=True)
+        resultsa = resultsa.append({'ID': name, 'qout': qout, 'r_sq': r_sq, 'deg_free': footprints, 'mse': mse, 'r_sq_mean': r_sq_mean}, ignore_index=True)
         #if deg_free>=60:
             #resultsb = resultsb.append({'eco': name2, 'ID': name, 'qout': qout, 'r_sq': r_sq, 'deg_free': deg_free, 'rmse': rms}, ignore_index=True)        
             #export to excel
@@ -210,9 +210,9 @@ def ecoregions(folderin, fileout, folderout, naming='gla14_eco_'):
         #plotting the curve
         ax.plot(xdata, ycurve, linestyle='-')
         #adding qout, r_sq and deg_free to plot
-        ax.annotate('q = ' + str(qout[0]), xy=(0.975,0.20), xycoords='axes fraction', fontsize=12, horizontalalignment='right', verticalalignment='bottom')
-        ax.annotate('r2 = ' + str(r_sq), xy=(0.975,0.15), xycoords='axes fraction', fontsize=12, horizontalalignment='right', verticalalignment='bottom')
-        ax.annotate('RMSE = ' + str(rms),xy=(0.975,0.10), xycoords='axes fraction', fontsize=12, horizontalalignment='right', verticalalignment='bottom')   
+        ax.annotate('q = ' + str(qout[0]), xy=(0.975,0.15), xycoords='axes fraction', fontsize=12, horizontalalignment='right', verticalalignment='bottom')
+        #ax.annotate('r2 = ' + str(r_sq), xy=(0.975,0.15), xycoords='axes fraction', fontsize=12, horizontalalignment='right', verticalalignment='bottom')
+        ax.annotate('MSE = ' + str(mse),xy=(0.975,0.10), xycoords='axes fraction', fontsize=12, horizontalalignment='right', verticalalignment='bottom')   
         ax.annotate('No of footprints = ' + str(footprints),xy=(0.975,0.05), xycoords='axes fraction', fontsize=12, horizontalalignment='right', verticalalignment='bottom')
         plt.savefig(folderout + 'fig{}.pdf'.format(name))
         plt.close
@@ -629,12 +629,16 @@ def grid(folderin, fileout, folderout, naming=4, eco_loc=2):
     folderout: string
              Filepath for folder to save the figures            
     """
-
+    #import csv with IDs and convert to dict
+    df_id2 = pd.read_csv('./eco/final_ID.csv')
+    df_id = df_id2.astype({'ECO_ID': 'str'})
+    eco_ID = df_id.set_index('ECO_ID')['ECO_NAME'].to_dict()
+    
     #using 'file' to title plot  
     fileList = glob.glob(folderin + '*.shp')
 
     #create df for results
-    resultsa = pd.DataFrame(columns = ['eco', 'ID', 'qout', 'r_sq', 'deg_free', 'rmse','r_sq_mean', 'adj_r2'])
+    resultsa = pd.DataFrame(columns = ['eco', 'ID', 'qout', 'r_sq', 'deg_free', 'mse','r_sq_mean', 'adj_r2'])
     #resultsb = pd.DataFrame(columns = ['eco', 'ID', 'qout', 'r_sq', 'deg_free', 'rmse'])
 
     for file in fileList:
@@ -646,6 +650,7 @@ def grid(folderin, fileout, folderout, naming=4, eco_loc=2):
         name_comp = shp_lyr_name.split('_')
         name = name_comp[naming] 
         eco = name_comp[eco_loc]
+        eco_name = eco_ID[eco]
         print(name)
         print(eco)
         #remove data with H_100 >= 0 prior to logging
@@ -779,7 +784,7 @@ def grid(folderin, fileout, folderout, naming=4, eco_loc=2):
         #extract info: eco, qout, r_sq, deg_free (only gets one eco in data)
         resultsa = resultsa.append({'eco': eco, 'ID': name, 'qout': qout, 
                                     'r_sq': r_sq, 'deg_free': footprints, 
-                                    'rmse': rms, 'r_sq_mean': r_sq_mean, 
+                                    'mse': mse, 'r_sq_mean': r_sq_mean, 
                                     'adj_r2': adj_r2}, ignore_index=True)
         #if deg_free>=60:
             #resultsb = resultsb.append({'eco': name2, 'ID': name, 'qout': qout, 'r_sq': r_sq, 'deg_free': deg_free, 'rmse': rms}, ignore_index=True)        
@@ -795,7 +800,7 @@ def grid(folderin, fileout, folderout, naming=4, eco_loc=2):
         #plots IQR
         ax.bar(plot['median'],plot['mean'],width=0, yerr=plot['iqr'])
         #sets title and axis labels
-        ax.set_title('Grid ' + name + ' in ecoregion ' + eco)
+        ax.set_title('Grid square in ' + eco_name)
         ax.set_ylabel('Canopy Density')
         ax.set_xlabel('Height - h100 (m)')
         ax.set_xlim([0, 60])
@@ -809,9 +814,9 @@ def grid(folderin, fileout, folderout, naming=4, eco_loc=2):
         ax.plot(xdata, ycurve, linestyle='-')
         #adding qout, r_sq and deg_free to plot
         #ax.annotate('adj_r2 = ' + str(adj_r2[0]), xy=(0.975,0.10), xycoords='axes fraction', fontsize=12, horizontalalignment='right', verticalalignment='bottom')
-        ax.annotate('q = ' + str(qout[0]), xy=(0.975,0.20), xycoords='axes fraction', fontsize=12, horizontalalignment='right', verticalalignment='bottom')
-        ax.annotate(u'R\u0305'u'\u00b2 = ' + str(adj_r2), xy=(0.975,0.15), xycoords='axes fraction', fontsize=12, horizontalalignment='right', verticalalignment='bottom')
-        ax.annotate(u'R\u0305'u'\u00b2 of the mean = ' + str(r_sq_mean),xy=(0.975,0.10), xycoords='axes fraction', fontsize=12, horizontalalignment='right', verticalalignment='bottom')   
+        ax.annotate('q = ' + str(qout[0]), xy=(0.975,0.15), xycoords='axes fraction', fontsize=12, horizontalalignment='right', verticalalignment='bottom')
+        #ax.annotate(u'R\u0305'u'\u00b2 = ' + str(adj_r2), xy=(0.975,0.15), xycoords='axes fraction', fontsize=12, horizontalalignment='right', verticalalignment='bottom')
+        ax.annotate('mean squared error = ' + str(mse),xy=(0.975,0.10), xycoords='axes fraction', fontsize=12, horizontalalignment='right', verticalalignment='bottom')   
         ax.annotate('No of footprints = ' + str(footprints),xy=(0.975,0.05), xycoords='axes fraction', fontsize=12, horizontalalignment='right', verticalalignment='bottom')
         plt.savefig(folderout + 'fig{}_{}.pdf'.format(eco, name))
         plt.close
@@ -853,7 +858,7 @@ def grid_date(folderin, fileout, folderout, grid=4, eco_loc=2, datnum=6):
     fileList = glob.glob(folderin + '*.shp')
 
     #create df for results
-    resultsa = pd.DataFrame(columns = ['eco', 'ID', 'date', 'qout', 'r_sq', 'deg_free', 'rmse','r_sq_mean'])
+    resultsa = pd.DataFrame(columns = ['eco', 'ID', 'date', 'qout', 'r_sq', 'deg_free', 'mse','r_sq_mean'])
     #resultsb = pd.DataFrame(columns = ['eco', 'ID', 'qout', 'r_sq', 'deg_free', 'rmse'])
 
     for file in fileList:
@@ -986,7 +991,7 @@ def grid_date(folderin, fileout, folderout, grid=4, eco_loc=2, datnum=6):
         #plt.close
         
         #extract info: eco, qout, r_sq, deg_free (only gets one eco in data)
-        resultsa = resultsa.append({'eco': eco, 'ID': name, 'date': date, 'qout': qout, 'r_sq': r_sq, 'deg_free': footprints, 'rmse': rms, 'r_sq_mean': r_sq_mean}, ignore_index=True)
+        resultsa = resultsa.append({'eco': eco, 'ID': name, 'date': date, 'qout': qout, 'r_sq': r_sq, 'deg_free': footprints, 'mse': mse, 'r_sq_mean': r_sq_mean}, ignore_index=True)
         #if deg_free>=60:
             #resultsb = resultsb.append({'eco': name2, 'ID': name, 'qout': qout, 'r_sq': r_sq, 'deg_free': deg_free, 'rmse': rms}, ignore_index=True)        
             #export to excel
