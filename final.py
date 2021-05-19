@@ -169,7 +169,7 @@ def glas_grid_eco(folderin, fileout, folderout, naming=4, eco_loc=2):
     naming: int
           Section of filename to obtain ID (here grid number). Obtained
           by splitting filename by '_' and indexing
-          Default = 3
+          Default = 4
 
     eco_loc: int
           Section of filename to obtain ecoregion (if applicable). 
