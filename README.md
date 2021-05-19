@@ -5,7 +5,11 @@ This project investigates the relationship between forest canopy height and cano
 Each module deals with an aspect of the processing.
 
 glas_prep: contains functions for the preparation of the ICESat GLAS data. For merging with .shp and .tif files, and for filtering and sorting the data
+
 gedi_prep: contains functions for the preparation of the GEDI data. For merging with .shp and .tif files, and for filtering and sorting the data
+
 final.py: contains functions for the regression with both ICESat GLAS and GEDI data that has been prepared
+
 boot.py: contains functions for bootstrapping to obtain a standard error of the regression with the ICESat GLAS data that has been prepared
+
 hxcd.py: contains functions for calculating a 'maximum' (mean of the top 10%) canopy desnity and height value for each polygon of ICESat GLAS data
