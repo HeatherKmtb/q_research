@@ -15,14 +15,18 @@ import numpy as np
 import pandas as pd
 import rsgislib.zonalstats
 
-def shp_join(filein, folderout, folderno):
+def shp_join(filein, folderin, folderout, folderno):
     """
-    Function to join a shapefile to the gla14 data. Must be run for folderno from 1-10
+    Function to join a shapefile to the GLAS data. Here with GLAS data in 
+    folders nunmered from 1-10, run function for each folder.
     
     Parameters
     ----------
     filein: string
           Filepath for shp file to join with gla14 data
+          
+    folderin: string
+            Filepath for folder contaning folders (numbered) containing GLAS data     
           
     folderout: string
              Filepath for folder to contain joined files
@@ -46,7 +50,7 @@ def shp_join(filein, folderout, folderno):
         output_vec = params[2]
         performSpatialJoin(base_vec, '', join_vec, '', output_vec, '')
     
-    split_files = glob.glob('./gla14/split_files/folder_{}/*.shp'.format(folderno))
+    split_files = glob.glob(folderin.format(folderno))
 
 
     params = []
@@ -59,9 +63,6 @@ def shp_join(filein, folderout, folderno):
     ncores = 50
     p = Pool(ncores)
     p.map(run_join, params)
-
-    #joined_files = glob.glob('./intersect_koppen_split/*.shp')
-    #rsgislib.vectorutils.mergeShapefiles(joined_files, './gla14/gla14_koppen.shp')
 
 def split_per(folderin, folderout, split_col='ECO_ID', colNms=['i_h100','i_cd',
     'doy','i_wflen','i_acqdate','b1','vcf','ECO_NAME','ECO_ID','BIOME','geometry']):
@@ -83,7 +84,8 @@ def split_per(folderin, folderout, split_col='ECO_ID', colNms=['i_h100','i_cd',
              
     colNms: list of strings
           names of columns to be retained in output shapefile.
-          Default = ['i_h100','i_cd','doy','i_wflen','i_acqdate','b1','vcf','ECO_NAME','ECO_ID','BIOME','geometry']                
+          Default = ['i_h100','i_cd','doy','i_wflen','i_acqdate','b1','vcf',
+          'ECO_NAME','ECO_ID','BIOME','geometry']                
     """
 
     split_files = glob.glob(folderin + '*.shp')
@@ -104,7 +106,8 @@ def split_per(folderin, folderout, split_col='ECO_ID', colNms=['i_h100','i_cd',
 
 def join_per(folderin, folderout, IDfile='./eco/final_ID.csv', column='ECO_ID', naming='*_eco_{}.shp'):
     """
-    Function to regroup files that have been split with spilt_per function on elements of split
+    Function to regroup files that have been split with spilt_per function on 
+    elements of split
     
     Parameters
     ----------

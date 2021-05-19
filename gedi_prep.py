@@ -10,6 +10,8 @@ import os.path
 import glob
 from rasterstats import zonal_stats
 import numpy as np
+import pandas as pd
+import rsgislib.vectorutils
 
 def tif_join(folderin, rasterin, folderout):
     """
@@ -155,10 +157,99 @@ def split_per_eco(folderin, folderout):
                 df_eco = df2.loc[df2[split_col]==eco]
                 df_eco.to_file(folderout + name + "_" + ID + ".gpkg", layer = beam, driver='GPKG')    
 
+def join_per_eco(folderin, folderout, IDfile):
+    """
+    Function to join GEDI files per ecoregion
     
+    Parameters
+    ----------
+    folderin: string
+          Filepath for folder contain GEDI files
+                    
+    folderout: string
+          Filepath for folder to contain processed files
+             
+    IDfile: string
+          Filepath for folder containing list of ecoregion IDs         
+    """     
+    df = pd.read_csv(IDfile)
+    ecoNms = list(np.unique(df['ID']))
+
+    for ecoNm in ecoNms:
+        ecoNm = ecoNm.astype(str)
+        fileList = glob.glob(folderin + 'GEDI*_{}.gpkg'.format(ecoNm))#here also need dict ref
+        rsgislib.vectorutils.mergeVectors2GPKG(fileList, folderout + 'gedi_' + 
+                                             ecoNm + '.gpkg', lyrName='join', exists=False)
+
+#rsgislib.vectorutils.mergeVectors2GPKGIndLyrs(fileList, folderout + 'gedi_' + ecoNm + '.gpkg')
+        
+        
+        
+
+
     
+def eco_tif_join(folderin, rasterin, folderout):
+    """
+    Function to join GEDI gpkg files regrouped per ecoregion to tif
     
+    Parameters
+    ----------
+    folderin: string
+          Filepath for folder contain GEDI files
+          
+    rasterin: string
+          Filepath for tif file
+          
+    folderout: string
+             Filepath for folder to contain joined files
+             
+     
+    """
+    gedifiles = glob.glob(folderin + '*.gpkg')
+    raster = rasterin
+    beam = 'join'
     
+    stats = 'grid'
+    
+    for file in gedifiles:
+        name = os.path.splitext(os.path.basename(file))[0]
+        
+        vector = geopandas.read_file(file, layer=beam)
+        result = zonal_stats(vector, raster, stats=stats, geojson_out=True)
+        geostats = geopandas.GeoDataFrame.from_features(result)
+    
+        geostats.to_file(folderout + name + ".gpkg", layer = beam, driver='GPKG')
+      
+def split_per_grid(folderin, folderout):
+    """
+    Function to split GEDI files per ecoregion
+    
+    Parameters
+    ----------
+    folderin: string
+          Filepath for folder contain GEDI files
+                    
+    folderout: string
+             Filepath for folder to contain processed files
+    """ 
+    gedifiles = glob.glob(folderin + '*.gpkg')
+
+    
+    split_col='grid'
+    
+    for file in gedifiles:
+        name = os.path.splitext(os.path.basename(file))[0]
+        
+        dfa = geopandas.read_file(file, layer='join')
+        df = dfa.astype({split_col: 'int32'})
+        ecoNames = list(np.unique(df[split_col]))#get list of unique ecoregions    
+        
+        for eco in ecoNames:
+            #create new df 
+            df2 = geopandas.GeoDataFrame(df)
+            ID = str(eco)
+            df_eco = df2.loc[df2[split_col]==eco]
+            df_eco.to_file(folderout + name + "_" + ID + ".gpkg", layer = 'join', driver='GPKG')    
     
     
     
