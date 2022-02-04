@@ -1,5 +1,5 @@
 # q_research
-For processing of ICESat GLAS, GEDI and ICESat-2 LiDAR data, to derive q parameter (from simple allometric model) for canopy height to canopy density relationship
+For processing of ICESat GLAS, GEDI and ICESat-2 LiDAR data, to derive q parameter (from simple allometric model) for canopy height to canopy density relationship. Please also refer to my gedi_processing library which is currently being updated.
 
 This project investigates the relationship between forest canopy height and canopy density for regions across the globe, using a simple allometric model. 
 Each module deals with an aspect of the processing.
